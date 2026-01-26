@@ -66,3 +66,9 @@ def history(limit: int = Query(default=30, ge=1, le=200)):
             message="History fetch failed",
             detail=str(e),
         )
+from .rag.ingest import ingest_kb
+
+@app.post("/rag/ingest")
+def rag_ingest():
+    n = ingest_kb(kb_dir=settings.KB_DIR, chroma_dir=settings.CHROMA_DIR)
+    return {"chunks_indexed": n}

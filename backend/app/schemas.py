@@ -16,6 +16,8 @@ class DecisionOutput(BaseModel):
     confidence: float = Field(ge=0.0, le=1.0)
     reasons: List[str] = Field(min_length=1, max_length=6)
     draft_response: str = Field(min_length=10, max_length=2000)
+    citations: list[str] = []
+    retrieved_snippets: list[dict] = []
 
 class EvaluationOutput(BaseModel):
     passed: bool

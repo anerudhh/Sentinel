@@ -9,6 +9,7 @@ type DecisionOutput = {
   confidence: number;
   reasons: string[];
   draft_response: string;
+  citations: string[]; // ✅ added
 };
 
 type EvaluationOutput = {
@@ -44,10 +45,32 @@ function fmt(ts: string) {
 }
 
 function urgencyBadge(u?: string) {
-  if (u === "high") return <span className="badge warn"><span className="dot" />High</span>;
-  if (u === "medium") return <span className="badge"><span className="dot" />Medium</span>;
-  if (u === "low") return <span className="badge"><span className="dot" />Low</span>;
-  return <span className="badge"><span className="dot" />—</span>;
+  if (u === "high")
+    return (
+      <span className="badge warn">
+        <span className="dot" />
+        High
+      </span>
+    );
+  if (u === "medium")
+    return (
+      <span className="badge">
+        <span className="dot" />
+        Medium
+      </span>
+    );
+  if (u === "low")
+    return (
+      <span className="badge">
+        <span className="dot" />
+        Low
+      </span>
+    );
+  return (
+    <span className="badge">
+      <span className="dot" />—
+    </span>
+  );
 }
 
 export default function Page() {
@@ -115,7 +138,10 @@ export default function Page() {
       {result.evaluation.passed ? "Pass" : "Fail"} • {result.evaluation.score.toFixed(2)}
     </span>
   ) : (
-    <span className="badge"><span className="dot" />No run</span>
+    <span className="badge">
+      <span className="dot" />
+      No run
+    </span>
   );
 
   return (
@@ -124,14 +150,14 @@ export default function Page() {
       <div className="topbar">
         <div className="brand">
           <div className="logo" style={{ display: "grid", placeItems: "center" }}>
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-    <path
-      d="M12 2l7 4v6c0 5-3.5 8-7 10-3.5-2-7-5-7-10V6l7-4z"
-      stroke="white"
-      strokeWidth="1.6"
-    />
-  </svg>
-</div>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M12 2l7 4v6c0 5-3.5 8-7 10-3.5-2-7-5-7-10V6l7-4z"
+                stroke="white"
+                strokeWidth="1.6"
+              />
+            </svg>
+          </div>
 
           <div>
             <h1>Sentinel</h1>
@@ -191,13 +217,19 @@ export default function Page() {
             <>
               <div className="kv">
                 <div className="k">Run ID</div>
-                <div className="v"><code>{result.run_id}</code></div>
+                <div className="v">
+                  <code>{result.run_id}</code>
+                </div>
 
                 <div className="k">Action</div>
-                <div className="v"><b>{result.decision.decision}</b></div>
+                <div className="v">
+                  <b>{result.decision.decision}</b>
+                </div>
 
                 <div className="k">Route</div>
-                <div className="v"><b>{result.decision.route}</b></div>
+                <div className="v">
+                  <b>{result.decision.route}</b>
+                </div>
 
                 <div className="k">Urgency</div>
                 <div className="v">{urgencyBadge(result.decision.urgency)}</div>
@@ -205,11 +237,29 @@ export default function Page() {
                 <div className="k">Confidence</div>
                 <div className="v">{result.decision.confidence.toFixed(2)}</div>
 
+                {/* ✅ Citations */}
+                <div className="k">Citations</div>
+                <div className="v">
+                  {result.decision.citations?.length ? (
+                    <span style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                      {result.decision.citations.map((c) => (
+                        <span key={c} className="badge">
+                          <span className="dot" />
+                          {c}
+                        </span>
+                      ))}
+                    </span>
+                  ) : (
+                    <span className="small">—</span>
+                  )}
+                </div>
+
                 <div className="k">Evaluation</div>
                 <div className="v">
                   <span className={`badge ${result.evaluation.passed ? "pass" : "fail"}`}>
                     <span className="dot" />
-                    {result.evaluation.passed ? "Pass" : "Fail"} • {result.evaluation.score.toFixed(2)}
+                    {result.evaluation.passed ? "Pass" : "Fail"} •{" "}
+                    {result.evaluation.score.toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -222,7 +272,10 @@ export default function Page() {
                 </div>
                 <ul style={{ margin: 0, paddingLeft: 18 }}>
                   {result.decision.reasons.map((r, i) => (
-                    <li key={i} style={{ marginBottom: 6, color: "rgba(255,255,255,0.86)" }}>
+                    <li
+                      key={i}
+                      style={{ marginBottom: 6, color: "rgba(255,255,255,0.86)" }}
+                    >
                       {r}
                     </li>
                   ))}
@@ -244,7 +297,22 @@ export default function Page() {
           {!result ? (
             <div className="small">Generated response will appear here.</div>
           ) : (
-            <pre>{result.decision.draft_response}</pre>
+            <>
+              <pre>{result.decision.draft_response}</pre>
+
+              {/* ✅ Optional: show sources under response */}
+              {result.decision.citations?.length > 0 && (
+                <div style={{ marginTop: 10 }} className="small">
+                  Sources:{" "}
+                  {result.decision.citations.map((c, i) => (
+                    <span key={c}>
+                      <b>{c}</b>
+                      {i < result.decision.citations.length - 1 ? ", " : ""}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
 
@@ -265,7 +333,10 @@ export default function Page() {
             <>
               <ul style={{ margin: 0, paddingLeft: 18 }}>
                 {result.evaluation.issues.map((iss, i) => (
-                  <li key={i} style={{ marginBottom: 6, color: "rgba(255,255,255,0.86)" }}>
+                  <li
+                    key={i}
+                    style={{ marginBottom: 6, color: "rgba(255,255,255,0.86)" }}
+                  >
                     {iss}
                   </li>
                 ))}
@@ -315,7 +386,9 @@ export default function Page() {
               return (
                 <tr key={h.id}>
                   <td style={{ color: "rgba(255,255,255,0.80)" }}>{fmt(h.created_at)}</td>
-                  <td><b>{route}</b></td>
+                  <td>
+                    <b>{route}</b>
+                  </td>
                   <td>{urgencyBadge(urgency)}</td>
                   <td>
                     <span className={`badge ${passed ? "pass" : "fail"}`}>
@@ -343,7 +416,8 @@ export default function Page() {
         </table>
 
         <div style={{ marginTop: 10 }} className="small">
-          Tip: Use varied ticket types (billing, account, tech) to demonstrate routing + QA behavior.
+          Tip: Use varied ticket types (billing, account, tech) to demonstrate routing + QA
+          behavior.
         </div>
       </div>
     </div>

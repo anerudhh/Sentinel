@@ -16,3 +16,7 @@ class Settings(BaseSettings):
         return [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
 
 settings = Settings()
+
+RAG_TOP_K: int = 4
+CHROMA_DIR: str = "chroma_store"
+KB_DIR: str = "knowledge_base"
